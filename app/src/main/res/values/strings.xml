@@ -21,6 +21,6 @@
     <string name="empty_list_title">No items</string>
     <string name="empty_list_description">There are not items in your gallery to play with!</string>
     <string name="correct">Correct</string>
-    <string name="incorrect">Incorrect</string>
+    <string name="incorrect">Incorrect, correct is: </string>
 
 </resources>

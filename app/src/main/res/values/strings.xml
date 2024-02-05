@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Oblig1</string>
+    <string name="gallery_button">Gallery</string>
+    <string name="quiz_button">Quizz</string>
+    <string name="photo_desc">Photo description</string>
+    <string name="delete_info">To delete, click on photo</string>
+    <string name="sort">Sort</string>
+    <string name="add_photo">Add Photo</string>
+    <string name="description">Description</string>
+    <string name="save">Save</string>
+    <string name="select_photo">Select Photo</string>
+    <string name="delete_photo_title">Delete photo</string>
+    <string name="delete_photo_message">Are you sure you want to delete the photo?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="score">Score:</string>
+    <string name="defaultScore">0/0</string>
+    <string name="answer_A">Answer A</string>
+    <string name="answer_B">Answer B</string>
+    <string name="answer_C">Answer C</string>
+    <string name="empty_list_title">No items</string>
+    <string name="empty_list_description">There are not items in your gallery to play with!</string>
+    <string name="correct">Correct</string>
+    <string name="incorrect">Incorrect</string>
+
+</resources>

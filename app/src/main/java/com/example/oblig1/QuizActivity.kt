@@ -145,7 +145,7 @@ class QuizActivity : AppCompatActivity() {
     private fun verifyAnswer(trueDesc: String, text: String){
         lastToast?.cancel()
 
-        val toastText = if(text == trueDesc) R.string.correct else R.string.incorrect
+        val toastText = if(text == trueDesc) getString(R.string.correct) else getString(R.string.incorrect) + trueDesc
         val toast = Toast.makeText(this, toastText, Toast.LENGTH_SHORT)
         toast.show()
 

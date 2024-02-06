@@ -19,7 +19,7 @@
     <string name="answer_B">Answer B</string>
     <string name="answer_C">Answer C</string>
     <string name="empty_list_title">No items</string>
-    <string name="empty_list_description">There are not items in your gallery to play with!</string>
+    <string name="empty_list_description">There are not enough items in your gallery to play with! You need at least 3!</string>
     <string name="correct">Correct</string>
     <string name="incorrect">Incorrect, correct is: </string>
 

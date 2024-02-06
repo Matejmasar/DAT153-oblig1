@@ -21,7 +21,7 @@
     <string name="empty_list_title">No items</string>
     <string name="empty_list_description">There are not enough items in your gallery to play with! You need at least 3!</string>
     <string name="correct">Correct</string>
-    <string name="incorrect">Incorrect, correct is: </string>
+    <string name="incorrect">Incorrect, correct is:</string>
     <string name="incorrect_select_photo_title">Incorrect values</string>
     <string name="incorrect_select_photo_desc">You have to select a photo and fill in description</string>
 

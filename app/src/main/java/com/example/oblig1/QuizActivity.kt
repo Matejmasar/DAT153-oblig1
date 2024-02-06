@@ -3,14 +3,17 @@ package com.example.oblig1
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.StrictMode
+import android.os.StrictMode.ThreadPolicy
+import android.os.StrictMode.VmPolicy
 import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+
 
 class QuizActivity : AppCompatActivity() {
     private var score: Int = 0
@@ -19,8 +22,24 @@ class QuizActivity : AppCompatActivity() {
     private var remainingPhotos: ArrayList<PhotoDescription> = ArrayList()
     private var descriptions: ArrayList<String> = ArrayList()
     private var lastToast: Toast? = null
+    private lateinit var rightAnswer: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        StrictMode.setThreadPolicy(
+            ThreadPolicy.Builder()
+                .detectDiskReads()
+                .detectDiskWrites()
+                .detectAll()
+                .penaltyLog()
+                .build()
+        )
+        StrictMode.setVmPolicy(
+            VmPolicy.Builder()
+                .detectLeakedSqlLiteObjects()
+                .detectLeakedClosableObjects()
+                .penaltyLog()
+                .build()
+        )
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_quiz)
 
@@ -36,12 +55,13 @@ class QuizActivity : AppCompatActivity() {
 
         remainingPhotos = ArrayList(allPhotos!!)
         Log.d("test", "On create Quiz")
-        Log.d("test", "$remainingPhotos")
-        Log.d("test", "$score")
-        Log.d("test", "$total")
-        updateScore()
+        Log.d("test", "Quiz - remainingPhotos $remainingPhotos")
+        Log.d("test", "Quiz - score $score")
+        Log.d("test", "Quiz - total $total")
+
         getDescriptions()
-        game()
+        setButtonHandlers()
+        nextPhoto()
     }
 
     private fun showEmptyItemsDialog(){
@@ -73,12 +93,6 @@ class QuizActivity : AppCompatActivity() {
         }
     }
 
-
-    private fun game(){
-        remainingPhotos.shuffle()
-        nextPhoto()
-    }
-
     private fun nextPhoto(){
         updateScore()
 
@@ -86,13 +100,13 @@ class QuizActivity : AppCompatActivity() {
 
         if(photo == null){
             remainingPhotos = ArrayList(allPhotos!!)
-            remainingPhotos.shuffle()
             photo = remainingPhotos.randomOrNull()
         }
 
+        rightAnswer = photo!!.description
         remainingPhotos.remove(photo)
-        drawImage(photo!!.photo)
-        setUpButtons(photo.description)
+        drawImage(photo.photo)
+        setUpButtonsText(photo.description)
 
     }
 
@@ -105,7 +119,7 @@ class QuizActivity : AppCompatActivity() {
             image.setImageURI(source)
     }
 
-    private fun setUpButtons(trueDesc: String){
+    private fun setUpButtonsText(trueDesc: String){
 
         var desc2: String = descriptions.random()
         var desc3: String = descriptions.random()
@@ -126,30 +140,28 @@ class QuizActivity : AppCompatActivity() {
         buttonB.text = answers[1]
         buttonC.text = answers[2]
 
-        setButtonHandlers(trueDesc, buttonA, buttonB, buttonC)
-
     }
 
-    private fun setButtonHandlers(trueDesc: String, buttonA: View, buttonB: View, buttonC: View){
-        buttonA.setOnClickListener{
-            verifyAnswer(trueDesc, (it as Button).text.toString() )
+    private fun setButtonHandlers(){
+        findViewById<Button>(R.id.answerA).setOnClickListener{
+            verifyAnswer((it as Button).text.toString() )
         }
-        buttonB.setOnClickListener{
-            verifyAnswer(trueDesc, (it as Button).text.toString() )
+        findViewById<Button>(R.id.answerB).setOnClickListener{
+            verifyAnswer((it as Button).text.toString() )
         }
-        buttonC.setOnClickListener{
-            verifyAnswer(trueDesc, (it as Button).text.toString() )
+        findViewById<Button>(R.id.answerC).setOnClickListener{
+            verifyAnswer((it as Button).text.toString() )
         }
     }
 
-    private fun verifyAnswer(trueDesc: String, text: String){
+    private fun verifyAnswer(text: String){
         lastToast?.cancel()
 
-        val toastText = if(text == trueDesc) getString(R.string.correct) else getString(R.string.incorrect) + trueDesc
+        val toastText = if(text == rightAnswer) getString(R.string.correct) else getString(R.string.incorrect) + rightAnswer
         val toast = Toast.makeText(this, toastText, Toast.LENGTH_SHORT)
         toast.show()
 
-        if(text == trueDesc)
+        if(text == rightAnswer)
             score++
 
         total++

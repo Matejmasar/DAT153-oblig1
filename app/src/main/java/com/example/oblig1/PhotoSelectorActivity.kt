@@ -8,6 +8,7 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
 
@@ -52,6 +53,9 @@ class PhotoSelectorActivity: AppCompatActivity() {
         val saveButton = findViewById<Button>(R.id.selectPhotoSave)
 
         saveButton.setOnClickListener{
+            if(uri == null || !this::description.isInitialized || description == ""){
+                showDialog(getString(R.string.incorrect_select_photo_title), getString(R.string.incorrect_select_photo_desc))
+            }
             uri?.let{
                 val newPhoto = PhotoDescription(it, description)
                 setResult(RESULT_OK, Intent().putExtra("PHOTO", newPhoto))
@@ -65,4 +69,16 @@ class PhotoSelectorActivity: AppCompatActivity() {
         image.setImageURI(uri)
     }
 
+    private fun showDialog(title:String, message: String){
+
+        val alertDialogBuilder = AlertDialog.Builder(this)
+        alertDialogBuilder.setTitle(title)
+        alertDialogBuilder.setMessage(message)
+
+        alertDialogBuilder.setPositiveButton("OK") { _, _ ->
+        }
+        val alertDialog = alertDialogBuilder.create()
+        alertDialog.show()
+
+    }
 }

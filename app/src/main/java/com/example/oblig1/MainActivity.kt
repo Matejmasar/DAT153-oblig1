@@ -3,8 +3,6 @@ package com.example.oblig1
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.os.StrictMode
-import android.util.Log
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
 
@@ -26,8 +24,6 @@ class MainActivity : AppCompatActivity() {
                 val returnedPhotos: ArrayList<PhotoDescription>? = data?.getParcelableArrayListExtra("PHOTOS")
 
                 returnedPhotos?.let{
-                    Log.d("test", "callback from gallery")
-                    Log.d("test", it.toString())
                     photos = ArrayList(it)
                 }
             }
@@ -63,10 +59,6 @@ class MainActivity : AppCompatActivity() {
         val quizButton = findViewById<Button>(R.id.quiz_button)
 
         quizButton.setOnClickListener{
-            Log.d("test", "Main - photos $photos")
-            Log.d("test", "Main - score $score")
-            Log.d("test", "Main - scoreTotal $scoreTotal")
-
             val quizIntent = Intent(this, QuizActivity::class.java)
                 .putParcelableArrayListExtra("PHOTOS", photos)
                 .putExtra("SCORE", score)

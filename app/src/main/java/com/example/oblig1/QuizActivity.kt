@@ -3,10 +3,6 @@ package com.example.oblig1
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.StrictMode
-import android.os.StrictMode.ThreadPolicy
-import android.os.StrictMode.VmPolicy
-import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
@@ -25,21 +21,6 @@ class QuizActivity : AppCompatActivity() {
     private lateinit var rightAnswer: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        StrictMode.setThreadPolicy(
-            ThreadPolicy.Builder()
-                .detectDiskReads()
-                .detectDiskWrites()
-                .detectAll()
-                .penaltyLog()
-                .build()
-        )
-        StrictMode.setVmPolicy(
-            VmPolicy.Builder()
-                .detectLeakedSqlLiteObjects()
-                .detectLeakedClosableObjects()
-                .penaltyLog()
-                .build()
-        )
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_quiz)
 
@@ -47,21 +28,18 @@ class QuizActivity : AppCompatActivity() {
         total = intent.getIntExtra("SCORE_TOTAL", 0)
         allPhotos = intent.getParcelableArrayListExtra("PHOTOS")
 
-        if(allPhotos == null || allPhotos!!.isEmpty()){
+        if(allPhotos == null || allPhotos!!.size < 3){
             setResult(RESULT_OK, Intent().putExtra("SCORE", score).putExtra("SCORE_TOTAL", total))
             showEmptyItemsDialog()
         }
+        else{
+            remainingPhotos = ArrayList(allPhotos!!)
 
+            getDescriptions()
+            setButtonHandlers()
+            nextPhoto()
+        }
 
-        remainingPhotos = ArrayList(allPhotos!!)
-        Log.d("test", "On create Quiz")
-        Log.d("test", "Quiz - remainingPhotos $remainingPhotos")
-        Log.d("test", "Quiz - score $score")
-        Log.d("test", "Quiz - total $total")
-
-        getDescriptions()
-        setButtonHandlers()
-        nextPhoto()
     }
 
     private fun showEmptyItemsDialog(){

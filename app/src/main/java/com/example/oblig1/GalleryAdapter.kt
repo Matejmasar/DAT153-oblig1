@@ -1,7 +1,6 @@
 package com.example.oblig1
 
 import android.content.Context
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,13 +32,7 @@ class GalleryAdapter(context: Context, photos: ArrayList<PhotoDescription>):
 
         if(currentPhoto != null){
             descriptionView.text = currentPhoto.description
-
-            // if Int => comes from R.drawable
-            if(currentPhoto.photo is Int)
-                imageView.setImageResource(currentPhoto.photo)
-            // if Uri => comes from user's selection
-            else if(currentPhoto.photo is Uri)
-                imageView.setImageURI(currentPhoto.photo)
+            imageView.setImageURI(currentPhoto.photo)
 
         }
 

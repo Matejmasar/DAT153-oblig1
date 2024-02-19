@@ -3,7 +3,6 @@ package com.example.oblig1
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -17,8 +16,8 @@ import androidx.appcompat.app.AlertDialog
  * handling deleting photos, etc.
  */
 class GalleryActivity : AppCompatActivity() {
-    // list of all photos
-    private var photos: ArrayList<PhotoDescription>? = ArrayList()
+    // Data Manager
+    private lateinit var dataManager: DataManager
     // adapter to populate photos into UI
     private lateinit var galleryAdapter: GalleryAdapter
     // remembering current sorting value
@@ -28,30 +27,17 @@ class GalleryActivity : AppCompatActivity() {
     private val startForResult =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                // returned PhotoDescription object
-                val photo:PhotoDescription? = result.data?.getParcelableExtra("PHOTO")
-                // if not null
-                photo?.let {
-                    // add to list of photos
-                    photos?.add(it)
-                    // update result
-                    setResult(RESULT_OK, Intent().putParcelableArrayListExtra("PHOTOS", photos))
-
-                    // sort if needed
-                    handleSorting()
-                    // update UI
-                    galleryAdapter.notifyDataSetChanged()
-                }
-
+                // sort if needed
+                handleSorting()
+                // update UI
+                galleryAdapter.notifyDataSetChanged()
             }
         }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_gallery)
-
-        // get photos from Main activity, new method loses support for target API
-        photos = intent.getParcelableArrayListExtra("PHOTOS")
+        dataManager = DataManager.instance
 
         drawPhotos()
         populateSpinner()
@@ -63,7 +49,7 @@ class GalleryActivity : AppCompatActivity() {
     // draw photos onto UI
     private fun drawPhotos(){
         val gallery: GridView = findViewById(R.id.galleryGridView)
-        galleryAdapter = GalleryAdapter(this, photos ?: ArrayList())
+        galleryAdapter = GalleryAdapter(this, dataManager.getAllPhotos() ?: ArrayList())
         gallery.adapter = galleryAdapter
 
         // set on click listener for each item
@@ -96,8 +82,8 @@ class GalleryActivity : AppCompatActivity() {
     // sort photos based on criteria
     private fun handleSorting(){
         when(currentSortSelection){
-            "A-Z" -> photos?.sortBy { it.description }
-            "Z-A" -> photos?.sortByDescending { it.description }
+            "A-Z" -> dataManager.getAllPhotos()?.sortBy { it.description }
+            "Z-A" -> dataManager.getAllPhotos()?.sortByDescending { it.description }
         }
         galleryAdapter.notifyDataSetChanged()
     }
@@ -119,9 +105,8 @@ class GalleryActivity : AppCompatActivity() {
 
         alertDialogBuilder.setPositiveButton(R.string.yes) { _, _ ->
             // remove photo
-            photos?.removeAt(position)
-            // update result
-            setResult(RESULT_OK, Intent().putParcelableArrayListExtra("PHOTOS", photos))
+            dataManager.removePhoto(position)
+
             // update UI
             galleryAdapter.notifyDataSetChanged()
         }

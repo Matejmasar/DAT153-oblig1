@@ -1,6 +1,5 @@
 package com.example.oblig1
 
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
@@ -14,12 +13,9 @@ import androidx.appcompat.app.AppCompatActivity
  * This class represents Quiz activity, it handles the game logic
  */
 class QuizActivity : AppCompatActivity() {
-    // reached score
-    private var score: Int = 0
-    // total number of attempts
-    private var total: Int = 0
-    // all photos to choose from
-    private var allPhotos: ArrayList<PhotoDescription>? = ArrayList()
+    // Data manager
+    private lateinit var dataManager: DataManager
+    private lateinit var imageView: ImageView
     // current game set of photos
     private var remainingPhotos: ArrayList<PhotoDescription> = ArrayList()
     // list of descriptions to choose buttons from
@@ -33,30 +29,25 @@ class QuizActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_quiz)
 
-        // get last score
-        score = intent.getIntExtra("SCORE", 0)
-        // get last number of total attempts
-        total = intent.getIntExtra("SCORE_TOTAL", 0)
-        // get all photos to choose from
-        allPhotos = intent.getParcelableArrayListExtra("PHOTOS")
+        dataManager = DataManager.instance
+        imageView = findViewById(R.id.quizPhoto)
 
         // if no photos passed or there is less than 3
-        if(allPhotos == null || allPhotos!!.size < 3){
-            setResult(RESULT_OK, Intent().putExtra("SCORE", score).putExtra("SCORE_TOTAL", total))
+        if(dataManager.getAllPhotos() == null || dataManager.getAllPhotos()!!.size < 3){
             // show warning dialog
             showEmptyItemsDialog()
         }
         // else we can play
         else{
             // create deep copy of photos
-            remainingPhotos = ArrayList(allPhotos!!)
-
+            remainingPhotos = ArrayList(dataManager.getAllPhotos()!!)
             getDescriptions()
             setButtonHandlers()
             nextPhoto()
         }
 
     }
+
 
     // method to show warning dialog about not enough items, finishes activity
     private fun showEmptyItemsDialog(){
@@ -76,15 +67,12 @@ class QuizActivity : AppCompatActivity() {
     // update score in UI
     private fun updateScore(){
         val scoreView = findViewById<TextView>(R.id.scoreNumber)
-        scoreView.text = "$score / $total"
-
-        // update result
-        setResult(RESULT_OK, Intent().putExtra("SCORE", score).putExtra("SCORE_TOTAL", total))
+        scoreView.text = "${dataManager.getScore()} / ${dataManager.getTotal()}"
     }
 
     // loop over all photos and get their descriptions
     private fun getDescriptions(){
-        allPhotos?.let{
+        dataManager.getAllPhotos()?.let{
             for(photo in it){
                 descriptions.add(photo.description)
             }
@@ -101,7 +89,7 @@ class QuizActivity : AppCompatActivity() {
 
         // no photos left, create deep copy of all photos and get a new random photo
         if(photo == null){
-            remainingPhotos = ArrayList(allPhotos!!)
+            remainingPhotos = ArrayList(dataManager.getAllPhotos()!!)
             photo = remainingPhotos.randomOrNull()
         }
 
@@ -115,15 +103,8 @@ class QuizActivity : AppCompatActivity() {
     }
 
     // method to draw image onto UI
-    private fun drawImage(source: Any){
-        val image = findViewById<ImageView>(R.id.quizPhoto)
-
-        // if source is Int => it comes from R.drawable
-        if(source is Int)
-            image.setImageResource(source)
-        // else it comes from user's phone
-        else if(source is Uri)
-            image.setImageURI(source)
+    private fun drawImage(source: Uri){
+        imageView.setImageURI(source)
     }
 
     // set up texts on buttons
@@ -179,10 +160,10 @@ class QuizActivity : AppCompatActivity() {
 
         // if correct, increase the score
         if(text == rightAnswer)
-            score++
+            dataManager.increaseScore()
 
         // increase the total number of attempts
-        total++
+        dataManager.increaseTotal()
 
         lastToast = toast
         // continue the game

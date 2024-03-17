@@ -46,14 +46,17 @@
 
         </LinearLayout>
 
-        <GridView
-            android:id="@+id/galleryGridView"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/galleryRecyclerView"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:numColumns="2"/>
+            android:layout_height="wrap_content"
+            tools:listitem="@layout/gallery_item"
+            android:visibility="visible"
+            />
+
 
     </LinearLayout>
+
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addPhotoButton"
@@ -66,6 +69,6 @@
         android:scaleType="center"
         app:fabSize="auto"
         app:maxImageSize="42dp"
-        app:srcCompat="@android:drawable/ic_menu_add" />
+        app:srcCompat="@android:drawable/ic_input_add" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

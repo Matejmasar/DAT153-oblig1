@@ -1,42 +1,78 @@
 package com.example.oblig1
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
 
-/**
- * This class is an adapter to populate gallery GridView of photos
- * it uses gallery_item.xml layout for each item in GridView, it consists of a photo and description
- */
-class GalleryAdapter(context: Context, photos: ArrayList<PhotoDescription>):
-    ArrayAdapter<PhotoDescription>(context, R.layout.gallery_item, photos) {
+class GalleryAdapter(private val onDelete: (PhotoDescription) -> Unit) : ListAdapter<PhotoDescription, GalleryAdapter.PhotoViewHolder>(PhotosComparator()) {
 
-    override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        // inflater to change views
-        val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoViewHolder {
+        return PhotoViewHolder.create(parent)
+    }
 
-        // if convertView is not null (meaning it is recycled) it becomes the gridView, otherwise inflate new one
-        val gridView: View = convertView ?: inflater.inflate(R.layout.gallery_item, parent, false)
+    override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
+        val current = getItem(position)
+        holder.bind(current)
 
-        // current item in drawing
-        val currentPhoto: PhotoDescription? = getItem(position)
 
-        // get view for the image
-        val imageView: ImageView = gridView.findViewById(R.id.photoImage)
-        // get view for the description
-        val descriptionView: TextView = gridView.findViewById(R.id.descriptionText)
+        holder.itemView.setOnClickListener {
+            showConfirmationDialog(holder.itemView.context) { onDelete(current) }
+        }
+    }
 
-        if(currentPhoto != null){
-            descriptionView.text = currentPhoto.description
-            imageView.setImageURI(currentPhoto.photo)
+    // show confirmation dialog before deleting photo
+    private fun showConfirmationDialog(context: Context, onDelete: () -> Unit){
+        val alertDialogBuilder = AlertDialog.Builder(context)
+        alertDialogBuilder.setTitle(R.string.delete_photo_title)
+        alertDialogBuilder.setMessage(R.string.delete_photo_message)
+
+        alertDialogBuilder.setPositiveButton(R.string.yes) { _, _ ->
+            // remove photo
+            onDelete()
+        }
+
+        alertDialogBuilder.setNegativeButton(R.string.no) { _, _ ->
+        }
+
+        val alertDialog = alertDialogBuilder.create()
+        alertDialog.show()
+    }
+
+
+    class PhotoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val photoImageView: ImageView = itemView.findViewById(R.id.photoImage)
+        private val descriptionTextView: TextView = itemView.findViewById(R.id.descriptionText)
+
+        fun bind(photoDescription: PhotoDescription) {
+            photoImageView.setImageURI(photoDescription.photo)
+            descriptionTextView.text = photoDescription.description
 
         }
 
-        return gridView
+        companion object {
+            fun create(parent: ViewGroup): PhotoViewHolder {
+                val view: View = LayoutInflater.from(parent.context)
+                    .inflate(R.layout.gallery_item, parent, false)
+                return PhotoViewHolder(view)
+            }
+        }
     }
 
+    class PhotosComparator : DiffUtil.ItemCallback<PhotoDescription>() {
+        override fun areItemsTheSame(oldItem: PhotoDescription, newItem: PhotoDescription): Boolean {
+            return oldItem.photo == newItem.photo
+        }
+
+        override fun areContentsTheSame(oldItem: PhotoDescription, newItem: PhotoDescription): Boolean {
+            return oldItem.photo == newItem.photo && oldItem.description == newItem.description
+        }
+    }
 }

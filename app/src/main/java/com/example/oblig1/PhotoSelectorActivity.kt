@@ -3,10 +3,12 @@ package com.example.oblig1
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.doOnTextChanged
@@ -15,8 +17,9 @@ import androidx.core.widget.doOnTextChanged
  * This class represents activity for adding a new photo and its description
  */
 class PhotoSelectorActivity: AppCompatActivity() {
-    // data manager
-    private lateinit var dataManager: DataManager
+    private val photoViewModel: PhotoViewModel by viewModels {
+        PhotoViewModelFactory((application as PhotosApplication).repository)
+    }
     // uri of the photo
     private var uri: Uri? = null
     // description of the photo
@@ -38,7 +41,6 @@ class PhotoSelectorActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_photo_selector)
 
-        dataManager = DataManager.instance
 
         setUpDescription()
         setUpSelect()
@@ -75,8 +77,10 @@ class PhotoSelectorActivity: AppCompatActivity() {
             }
             else{
                 val newPhoto = PhotoDescription(uri!!, description)
-                dataManager.addPhoto(newPhoto)
+                photoViewModel.insert(newPhoto)
                 setResult(RESULT_OK, Intent())
+                Log.d("PhotoSelectorActivity", "setUpSave: $newPhoto")
+                Log.d("PhotoSelectorActivity", "setUpSave: ${photoViewModel.allPhotos.value}")
                 // close activity
                 finish()
             }

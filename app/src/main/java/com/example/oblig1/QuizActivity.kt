@@ -6,44 +6,52 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+
 
 /**
  * This class represents Quiz activity, it handles the game logic
  */
 class QuizActivity : AppCompatActivity() {
-    // Data manager
-    private lateinit var dataManager: DataManager
+    private val photoViewModel: PhotoViewModel by viewModels {
+        PhotoViewModelFactory((application as PhotosApplication).repository)
+    }
+
     private lateinit var imageView: ImageView
+
     // current game set of photos
-    private var remainingPhotos: ArrayList<PhotoDescription> = ArrayList()
+    private var remainingPhotos: MutableList<PhotoDescription> = mutableListOf()
     // list of descriptions to choose buttons from
-    private var descriptions: ArrayList<String> = ArrayList()
+    private var descriptions: List<String> = listOf()
     // last toast object
     private var lastToast: Toast? = null
     // current right answer
     private lateinit var rightAnswer: String
+    // score
+    private var score = 0
+    // total number of attempts
+    private var total = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_quiz)
 
-        dataManager = DataManager.instance
         imageView = findViewById(R.id.quizPhoto)
 
         // if no photos passed or there is less than 3
-        if(dataManager.getAllPhotos() == null || dataManager.getAllPhotos()!!.size < 3){
-            // show warning dialog
-            showEmptyItemsDialog()
-        }
-        // else we can play
-        else{
-            // create deep copy of photos
-            remainingPhotos = ArrayList(dataManager.getAllPhotos()!!)
-            getDescriptions()
-            setButtonHandlers()
-            nextPhoto()
+
+        photoViewModel.allPhotos.observe(this) { photos ->
+            if (photos.size < 3) {
+                // show warning dialog
+                showEmptyItemsDialog()
+            } else {
+                // create deep copy of photos
+                remainingPhotos = photos.toMutableList()
+                getDescriptions()
+                setButtonHandlers()
+            }
         }
 
     }
@@ -67,16 +75,16 @@ class QuizActivity : AppCompatActivity() {
     // update score in UI
     private fun updateScore(){
         val scoreView = findViewById<TextView>(R.id.scoreNumber)
-        scoreView.text = "${dataManager.getScore()} / ${dataManager.getTotal()}"
+        scoreView.text = "$score / $total"
     }
 
-    // loop over all photos and get their descriptions
+    // get descriptions from db
     private fun getDescriptions(){
-        dataManager.getAllPhotos()?.let{
-            for(photo in it){
-                descriptions.add(photo.description)
-            }
+        photoViewModel.allDescriptions.observe(this) { descriptions ->
+            this.descriptions = descriptions
+            nextPhoto()
         }
+
     }
 
     // main game logic
@@ -84,12 +92,13 @@ class QuizActivity : AppCompatActivity() {
         // update score on each turn
         updateScore()
 
+
         // get random photo or null if no photos left
         var photo = remainingPhotos.randomOrNull()
 
         // no photos left, create deep copy of all photos and get a new random photo
         if(photo == null){
-            remainingPhotos = ArrayList(dataManager.getAllPhotos()!!)
+            remainingPhotos = photoViewModel.allPhotos.value?.toMutableList() ?: mutableListOf()
             photo = remainingPhotos.randomOrNull()
         }
 
@@ -109,6 +118,7 @@ class QuizActivity : AppCompatActivity() {
 
     // set up texts on buttons
     private fun setUpButtonsText(trueDesc: String){
+
 
         // get random description
         var desc2: String = descriptions.random()
@@ -160,15 +170,34 @@ class QuizActivity : AppCompatActivity() {
 
         // if correct, increase the score
         if(text == rightAnswer)
-            dataManager.increaseScore()
+            score++
 
         // increase the total number of attempts
-        dataManager.increaseTotal()
+        total++
 
         lastToast = toast
         // continue the game
         nextPhoto()
 
+    }
+
+    // on close show toast with score
+    override fun onStop() {
+
+        // cancel last toast if any, to show the new one and prevent queueing
+        lastToast?.cancel()
+
+        // if not enough photos, do not show the toast
+        if((photoViewModel.allPhotos.value?.size ?: 0) < 3 || total == 0){
+            super.onStop()
+            return
+        }
+
+        
+        val toast = Toast.makeText(this, "Your score is $score / $total", Toast.LENGTH_LONG)
+        toast.show()
+
+        super.onStop()
     }
 
 }

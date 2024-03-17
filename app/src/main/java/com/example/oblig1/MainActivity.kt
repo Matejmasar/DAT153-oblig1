@@ -10,14 +10,10 @@ import android.widget.Button
  */
 class MainActivity : AppCompatActivity() {
 
-    // Data manager
-    private lateinit var dataManager: DataManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        dataManager = DataManager.instance
 
         setUpGallery()
         setUpQuiz()

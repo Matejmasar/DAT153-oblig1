@@ -3,59 +3,67 @@ package com.example.oblig1
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.GridView
 import android.widget.Spinner
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AlertDialog
+import androidx.activity.viewModels
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 
 /**
  * This class represents the Gallery, with its photos, descriptions, button to add new photos,
  * handling deleting photos, etc.
  */
 class GalleryActivity : AppCompatActivity() {
-    // Data Manager
-    private lateinit var dataManager: DataManager
+
+    private val photoViewModel: PhotoViewModel by viewModels {
+        PhotoViewModelFactory((application as PhotosApplication).repository)
+    }
     // adapter to populate photos into UI
     private lateinit var galleryAdapter: GalleryAdapter
     // remembering current sorting value
-    private lateinit  var currentSortSelection: String
+    private var currentSortSelection: String = "Select sorting"
 
-    // modern replacement of startActivityForResult and onActivityResult
-    private val startForResult =
-        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            if (result.resultCode == RESULT_OK) {
-                // sort if needed
-                handleSorting()
-                // update UI
-                galleryAdapter.notifyDataSetChanged()
-            }
-        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_gallery)
-        dataManager = DataManager.instance
 
         drawPhotos()
         populateSpinner()
         setUpFAB()
+
+        photoViewModel.allPhotos.observe(this) { photos ->
+            Log.d("GalleryActivity", "Photos changed")
+            // Update the cached copy of the photos in the adapter.
+            photos?.let {
+                val sortedPhotos = when (currentSortSelection) {
+                    "A-Z" -> it.sortedBy { photo -> photo.description }
+                    "Z-A" -> it.sortedByDescending { photo -> photo.description }
+                    else -> it
+                }
+
+                galleryAdapter.submitList(sortedPhotos)
+
+            }
+        }
 
     }
 
 
     // draw photos onto UI
     private fun drawPhotos(){
-        val gallery: GridView = findViewById(R.id.galleryGridView)
-        galleryAdapter = GalleryAdapter(this, dataManager.getAllPhotos() ?: ArrayList())
+        val gallery: RecyclerView = findViewById(R.id.galleryRecyclerView)
+        gallery.layoutManager = GridLayoutManager(this, 2);
+
+        galleryAdapter = GalleryAdapter { photo ->
+            photoViewModel.delete(photo)
+        }
+
         gallery.adapter = galleryAdapter
 
-        // set on click listener for each item
-        gallery.setOnItemClickListener{ _, _, position, _ ->
-            showConfirmationDialog(position)
-        }
     }
 
     // populate spinner with sorting options
@@ -81,11 +89,15 @@ class GalleryActivity : AppCompatActivity() {
 
     // sort photos based on criteria
     private fun handleSorting(){
-        when(currentSortSelection){
-            "A-Z" -> dataManager.getAllPhotos()?.sortBy { it.description }
-            "Z-A" -> dataManager.getAllPhotos()?.sortByDescending { it.description }
+        Log.d("GalleryActivity", "Sorting photos")
+        photoViewModel.allPhotos.value?.let { photos ->
+            val sortedPhotos = when(currentSortSelection){
+                "A-Z" -> photos.sortedBy { photo -> photo.description }
+                "Z-A" -> photos.sortedByDescending { photo -> photo.description }
+                else -> photos
+            }
+            galleryAdapter.submitList(sortedPhotos)
         }
-        galleryAdapter.notifyDataSetChanged()
     }
 
     // set up Floating Action Button
@@ -93,29 +105,9 @@ class GalleryActivity : AppCompatActivity() {
         val fab: View = findViewById(R.id.addPhotoButton)
         fab.setOnClickListener {
             val getPhotoIntent = Intent(this, PhotoSelectorActivity::class.java)
-            startForResult.launch(getPhotoIntent)
+            startActivity(getPhotoIntent)
         }
     }
 
-    // show confirmation dialog before deleting photo
-    private fun showConfirmationDialog(position: Int) {
-        val alertDialogBuilder = AlertDialog.Builder(this)
-        alertDialogBuilder.setTitle(R.string.delete_photo_title)
-        alertDialogBuilder.setMessage(R.string.delete_photo_message)
-
-        alertDialogBuilder.setPositiveButton(R.string.yes) { _, _ ->
-            // remove photo
-            dataManager.removePhoto(position)
-
-            // update UI
-            galleryAdapter.notifyDataSetChanged()
-        }
-
-        alertDialogBuilder.setNegativeButton(R.string.no) { _, _ ->
-        }
-
-        val alertDialog = alertDialogBuilder.create()
-        alertDialog.show()
-    }
 
 }

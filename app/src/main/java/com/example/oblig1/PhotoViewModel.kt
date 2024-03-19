@@ -9,6 +9,11 @@ import kotlinx.coroutines.launch
 
 class PhotoViewModel(private val repository: PhotoRepository): ViewModel() {
 
+    var score = 0
+    var totalScore = 0
+    var currentPhoto: PhotoDescription? = null
+    var buttonDescriptions: Array<String> = arrayOf()
+
     // Using LiveData and caching what allPhotos returns has several benefits:
     // - We can put an observer on the data (instead of polling for changes) and only update the
     //   the UI when the data actually changes.

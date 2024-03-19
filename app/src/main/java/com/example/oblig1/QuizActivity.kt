@@ -29,10 +29,13 @@ class QuizActivity : AppCompatActivity() {
     private var lastToast: Toast? = null
     // current right answer
     private lateinit var rightAnswer: String
-    // score
+
     private var score = 0
-    // total number of attempts
     private var total = 0
+    private var currentPhoto: PhotoDescription? = null
+    private var buttonDescriptions: Array<String> = arrayOf()
+    private var resumed = false
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +52,11 @@ class QuizActivity : AppCompatActivity() {
             } else {
                 // create deep copy of photos
                 remainingPhotos = photos.toMutableList()
+                getSavedData()
+
+                if(currentPhoto != null && buttonDescriptions.isNotEmpty())
+                    resumed = true
+
                 getDescriptions()
                 setButtonHandlers()
             }
@@ -56,6 +64,12 @@ class QuizActivity : AppCompatActivity() {
 
     }
 
+    private fun getSavedData(){
+        score = photoViewModel.score
+        total = photoViewModel.totalScore
+        currentPhoto = photoViewModel.currentPhoto
+        buttonDescriptions = photoViewModel.buttonDescriptions
+    }
 
     // method to show warning dialog about not enough items, finishes activity
     private fun showEmptyItemsDialog(){
@@ -76,6 +90,9 @@ class QuizActivity : AppCompatActivity() {
     private fun updateScore(){
         val scoreView = findViewById<TextView>(R.id.scoreNumber)
         scoreView.text = "$score / $total"
+
+        photoViewModel.score = score
+        photoViewModel.totalScore = total
     }
 
     // get descriptions from db
@@ -92,22 +109,25 @@ class QuizActivity : AppCompatActivity() {
         // update score on each turn
         updateScore()
 
+        if(!resumed){
+            // get random photo or null if no photos left
+            currentPhoto = remainingPhotos.randomOrNull()
 
-        // get random photo or null if no photos left
-        var photo = remainingPhotos.randomOrNull()
+            // no photos left, create deep copy of all photos and get a new random photo
+            if(currentPhoto == null){
+                remainingPhotos = photoViewModel.allPhotos.value?.toMutableList() ?: mutableListOf()
+                currentPhoto = remainingPhotos.randomOrNull()
+            }
 
-        // no photos left, create deep copy of all photos and get a new random photo
-        if(photo == null){
-            remainingPhotos = photoViewModel.allPhotos.value?.toMutableList() ?: mutableListOf()
-            photo = remainingPhotos.randomOrNull()
+            photoViewModel.currentPhoto = currentPhoto
         }
 
         // set the right answer to this photo's description
-        rightAnswer = photo!!.description
+        rightAnswer = currentPhoto!!.description
         // remove current photo so it cannot be repeated
-        remainingPhotos.remove(photo)
-        drawImage(photo.photo)
-        setUpButtonsText(photo.description)
+        remainingPhotos.remove(currentPhoto)
+        drawImage(currentPhoto!!.photo)
+        setUpButtonsText()
 
     }
 
@@ -117,31 +137,37 @@ class QuizActivity : AppCompatActivity() {
     }
 
     // set up texts on buttons
-    private fun setUpButtonsText(trueDesc: String){
+    private fun setUpButtonsText(){
 
+        if(!resumed){
+            // get random description
+            var desc2: String = descriptions.random()
+            // get random description
+            var desc3: String = descriptions.random()
 
-        // get random description
-        var desc2: String = descriptions.random()
-        // get random description
-        var desc3: String = descriptions.random()
+            // if desc2 or desc3 are the same as the right answer or they are equal to another, get different ones
+            while (desc2 == rightAnswer || desc3 == rightAnswer || desc2 == desc3){
+                desc2 = descriptions.random()
+                desc3 = descriptions.random()
+            }
 
-        // if desc2 or desc3 are the same as the right answer or they are equal to another, get different ones
-        while (desc2 == trueDesc || desc3 == trueDesc || desc2 == desc3){
-            desc2 = descriptions.random()
-            desc3 = descriptions.random()
+            buttonDescriptions = arrayOf(rightAnswer, desc2, desc3)
+            // shuffle texts so the order is random
+            buttonDescriptions.shuffle()
+
+            photoViewModel.buttonDescriptions = buttonDescriptions
+
         }
 
-        val answers = arrayOf(trueDesc, desc2, desc3)
-        // shuffle texts so the order is random
-        answers.shuffle()
+        resumed = false
 
         val buttonA = findViewById<Button>(R.id.answerA)
         val buttonB = findViewById<Button>(R.id.answerB)
         val buttonC = findViewById<Button>(R.id.answerC)
 
-        buttonA.text = answers[0]
-        buttonB.text = answers[1]
-        buttonC.text = answers[2]
+        buttonA.text = buttonDescriptions[0]
+        buttonB.text = buttonDescriptions[1]
+        buttonC.text = buttonDescriptions[2]
 
     }
 
@@ -184,18 +210,20 @@ class QuizActivity : AppCompatActivity() {
     // on close show toast with score
     override fun onStop() {
 
-        // cancel last toast if any, to show the new one and prevent queueing
-        lastToast?.cancel()
+        if (!isChangingConfigurations){
+            // cancel last toast if any, to show the new one and prevent queueing
+            lastToast?.cancel()
 
-        // if not enough photos, do not show the toast
-        if((photoViewModel.allPhotos.value?.size ?: 0) < 3 || total == 0){
-            super.onStop()
-            return
+            // if not enough photos, do not show the toast
+            if((photoViewModel.allPhotos.value?.size ?: 0) < 3 || total == 0){
+                super.onStop()
+                return
+            }
+
+
+            val toast = Toast.makeText(this, "Your score is $score / $total", Toast.LENGTH_LONG)
+            toast.show()
         }
-
-        
-        val toast = Toast.makeText(this, "Your score is $score / $total", Toast.LENGTH_LONG)
-        toast.show()
 
         super.onStop()
     }

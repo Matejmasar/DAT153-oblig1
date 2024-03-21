@@ -3,7 +3,6 @@ package com.example.oblig1
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -76,7 +75,7 @@ class PhotoSelectorActivity: AppCompatActivity() {
                 showDialog(getString(R.string.incorrect_select_photo_title), getString(R.string.incorrect_select_photo_desc))
             }
             else{
-                val newPhoto = PhotoDescription(uri!!, description)
+                val newPhoto = PhotoDescription(photo = uri!!, description = description)
                 photoViewModel.insert(newPhoto)
                 setResult(RESULT_OK, Intent())
 

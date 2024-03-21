@@ -79,8 +79,7 @@ class PhotoSelectorActivity: AppCompatActivity() {
                 val newPhoto = PhotoDescription(uri!!, description)
                 photoViewModel.insert(newPhoto)
                 setResult(RESULT_OK, Intent())
-                Log.d("PhotoSelectorActivity", "setUpSave: $newPhoto")
-                Log.d("PhotoSelectorActivity", "setUpSave: ${photoViewModel.allPhotos.value}")
+
                 // close activity
                 finish()
             }

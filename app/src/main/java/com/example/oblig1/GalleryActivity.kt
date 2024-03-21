@@ -36,7 +36,6 @@ class GalleryActivity : AppCompatActivity() {
         setUpFAB()
 
         photoViewModel.allPhotos.observe(this) { photos ->
-            Log.d("GalleryActivity", "Photos changed")
             // Update the cached copy of the photos in the adapter.
             photos?.let {
                 val sortedPhotos = when (currentSortSelection) {
@@ -89,7 +88,7 @@ class GalleryActivity : AppCompatActivity() {
 
     // sort photos based on criteria
     private fun handleSorting(){
-        Log.d("GalleryActivity", "Sorting photos")
+
         photoViewModel.allPhotos.value?.let { photos ->
             val sortedPhotos = when(currentSortSelection){
                 "A-Z" -> photos.sortedBy { photo -> photo.description }
@@ -97,6 +96,7 @@ class GalleryActivity : AppCompatActivity() {
                 else -> photos
             }
             galleryAdapter.submitList(sortedPhotos)
+
         }
     }
 

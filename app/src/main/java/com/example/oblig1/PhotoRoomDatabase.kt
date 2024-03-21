@@ -2,6 +2,7 @@ package com.example.oblig1
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -11,7 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 
-@Database(entities = [PhotoDescription::class], version = 1, exportSchema = false)
+@Database(entities = [PhotoDescription::class], version = 2, exportSchema = false)
 @TypeConverters(UriConverter::class)
 abstract class PhotoRoomDatabase : RoomDatabase()
 {
@@ -33,7 +34,8 @@ abstract class PhotoRoomDatabase : RoomDatabase()
                     PhotoRoomDatabase::class.java,
                     "photo_database"
                 ).addCallback(PhotoDatabaseCallback(scope))
-                 .build()
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 // return instance
                 instance
@@ -54,14 +56,23 @@ abstract class PhotoRoomDatabase : RoomDatabase()
             }
         }
 
+        override fun onDestructiveMigration(db: SupportSQLiteDatabase) {
+            super.onDestructiveMigration(db)
+            INSTANCE?.let { database ->
+                scope.launch {
+                    populateDatabase(database.photoDao())
+                }
+            }
+        }
+
         private fun resourceIdToUri(resourceId: Int): Uri {
             return Uri.parse("android.resource://com.example.oblig1/$resourceId")
         }
 
         suspend fun populateDatabase(photoDao: PhotoDao) {
-            photoDao.insert(PhotoDescription(resourceIdToUri(R.drawable.cat), "Cat"))
-            photoDao.insert(PhotoDescription(resourceIdToUri(R.drawable.dog), "Dog"))
-            photoDao.insert(PhotoDescription(resourceIdToUri(R.drawable.lion), "Lion"))
+            photoDao.insert(PhotoDescription(photo = resourceIdToUri(R.drawable.cat), description = "Cat"))
+            photoDao.insert(PhotoDescription(photo = resourceIdToUri(R.drawable.dog), description = "Dog"))
+            photoDao.insert(PhotoDescription(photo = resourceIdToUri(R.drawable.lion), description = "Lion"))
         }
 
 

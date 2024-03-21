@@ -11,7 +11,9 @@ import androidx.room.PrimaryKey
  * it stores source for the image and its description
  */
 @Entity(tableName = "photos")
-data class PhotoDescription(@PrimaryKey @ColumnInfo(name = "uri") val photo: Uri,
-                       @ColumnInfo(name = "description") val description: String){
+data class PhotoDescription(
+    @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int = 0,
+    @ColumnInfo(name = "uri") val photo: Uri,
+    @ColumnInfo(name = "description") val description: String){
 
 }

@@ -28,6 +28,7 @@ class QuizActivity : AppCompatActivity() {
     // last toast object
     private var lastToast: Toast? = null
     // current right answer
+
     private lateinit var rightAnswer: String
 
     private var score = 0
@@ -36,6 +37,14 @@ class QuizActivity : AppCompatActivity() {
     private var buttonDescriptions: Array<String> = arrayOf()
     private var resumed = false
 
+
+    internal fun getRightAnswer(): String {
+        return rightAnswer
+    }
+
+    internal fun buttonDescriptions(): Array<String> {
+        return buttonDescriptions
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

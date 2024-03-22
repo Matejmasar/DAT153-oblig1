@@ -42,9 +42,9 @@ class DataManager : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        allPhotos?.add(PhotoDescription(resourceIdToUri(R.drawable.cat), "Cat"))
-        allPhotos?.add(PhotoDescription(resourceIdToUri(R.drawable.dog), "Dog"))
-        allPhotos?.add(PhotoDescription(resourceIdToUri(R.drawable.lion), "Lion"))
+        allPhotos?.add(PhotoDescription(photo = resourceIdToUri(R.drawable.cat), description = "Cat"))
+        allPhotos?.add(PhotoDescription(photo = resourceIdToUri(R.drawable.dog), description = "Dog"))
+        allPhotos?.add(PhotoDescription(photo = resourceIdToUri(R.drawable.lion), description = "Lion"))
     }
 
     fun increaseScore() {

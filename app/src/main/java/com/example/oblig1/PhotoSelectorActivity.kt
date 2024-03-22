@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import androidx.activity.result.ActivityResultRegistry
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -15,7 +16,8 @@ import androidx.core.widget.doOnTextChanged
 /**
  * This class represents activity for adding a new photo and its description
  */
-class PhotoSelectorActivity: AppCompatActivity() {
+class PhotoSelectorActivity(private val customRegistry: ActivityResultRegistry? = null): AppCompatActivity() {
+
     private val photoViewModel: PhotoViewModel by viewModels {
         PhotoViewModelFactory((application as PhotosApplication).repository)
     }
@@ -25,7 +27,7 @@ class PhotoSelectorActivity: AppCompatActivity() {
     private lateinit var description: String
 
     // modern replacement of starting activity with Intent
-    private val openDocument = registerForActivityResult(ActivityResultContracts.OpenDocument()) { result: Uri? ->
+    private val openDocument = registerForActivityResult(ActivityResultContracts.OpenDocument(), customRegistry ?: this.activityResultRegistry) { result: Uri? ->
         // if any uri came back
         result?.let{
             // set the uri
@@ -40,12 +42,12 @@ class PhotoSelectorActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_photo_selector)
 
-
         setUpDescription()
         setUpSelect()
         setUpSave()
 
     }
+
 
     // set up description on change listener
     private fun setUpDescription(){

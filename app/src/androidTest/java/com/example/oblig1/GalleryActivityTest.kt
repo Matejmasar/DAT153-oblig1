@@ -15,12 +15,14 @@ import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.typeText
+import androidx.test.espresso.contrib.RecyclerViewActions
 import androidx.test.espresso.intent.Intents.intended
 
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent
 
 import androidx.test.espresso.intent.rule.IntentsTestRule
 import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 
 
@@ -36,7 +38,7 @@ class GalleryActivityTest {
     val galleryActivity = IntentsTestRule(GalleryActivity::class.java)
 
     @Test
-    fun test_addPhotoButtonClicked() {
+    fun test_addPhoto() {
         val view = galleryActivity.activity.findViewById<RecyclerView>(R.id.galleryRecyclerView)
         val numberOfItems = view.adapter?.itemCount ?: 0
 
@@ -45,6 +47,21 @@ class GalleryActivityTest {
         // check if the number of items in the recycler view has increased
         val newNumberOfItems = view.adapter?.itemCount ?: 0
         assert(newNumberOfItems == numberOfItems + 1)
+
+    }
+
+    @Test
+    fun test_removePhoto(){
+        val view = galleryActivity.activity.findViewById<RecyclerView>(R.id.galleryRecyclerView)
+        val numberOfItems = view.adapter?.itemCount ?: 0
+
+        onView(withId(R.id.galleryRecyclerView))
+            .perform(RecyclerViewActions.actionOnItemAtPosition<RecyclerView.ViewHolder>(0, click()))
+        onView(withText(R.string.yes)).perform(click())
+
+        // check if the number of items in the recycler view has decreased
+        val newNumberOfItems = view.adapter?.itemCount ?: 0
+        assert(newNumberOfItems == numberOfItems - 1)
 
     }
 

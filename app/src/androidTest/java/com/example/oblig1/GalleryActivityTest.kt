@@ -3,20 +3,20 @@ package com.example.oblig1
 
 
 
+import android.app.Activity
+import android.app.Instrumentation
+import android.content.Intent
 import android.net.Uri
 
-import androidx.activity.result.ActivityResultRegistry
-import androidx.activity.result.contract.ActivityResultContract
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.ActivityOptionsCompat
 import androidx.recyclerview.widget.RecyclerView
-import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.closeSoftKeyboard
 import androidx.test.espresso.action.ViewActions.typeText
 import androidx.test.espresso.contrib.RecyclerViewActions
+import androidx.test.espresso.intent.Intents
 import androidx.test.espresso.intent.Intents.intended
+import androidx.test.espresso.intent.matcher.IntentMatchers
 
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasComponent
 
@@ -70,40 +70,21 @@ class GalleryActivityTest {
         onView(withId(R.id.addPhotoButton)).perform(click())
         intended(hasComponent(PhotoSelectorActivity::class.java.name))
 
-        // mock photo selection
-        mockPhotoSelection()
-    }
+        // Type a description
+        onView(withId(R.id.selectPhotoDescription)).perform(typeText("Test Image"), closeSoftKeyboard())
 
-    private fun mockPhotoSelection(){
         // Create an expected result Uri
         val expectedResultUri = Uri.parse("android.resource://com.example.oblig1/${R.drawable.dog}")
+        Intents.intending(IntentMatchers.hasAction(Intent.ACTION_OPEN_DOCUMENT))
+            .respondWith(
+                Instrumentation.ActivityResult(
+                    Activity.RESULT_OK, Intent().setData(expectedResultUri)))
 
-        // Create a custom ActivityResultRegistry
-        val testRegistry = object : ActivityResultRegistry() {
-            override fun <I, O> onLaunch(
-                requestCode: Int,
-                contract: ActivityResultContract<I, O>,
-                input: I,
-                options: ActivityOptionsCompat?
-            ) {
-                // Dispatch the predefined result URI when the OpenDocument contract is launched
-                if (contract is ActivityResultContracts.OpenDocument) {
-                    dispatchResult(requestCode, expectedResultUri)
-                }
-            }
-        }
-
-        // Launch the PhotoSelectorActivity with the custom registry
-        with(ActivityScenario.launch(PhotoSelectorActivity(testRegistry)::class.java)) {
-            onActivity {
-                onView(withId(R.id.selectPhotoDescription)).perform(typeText("Test image"), closeSoftKeyboard())
-                onView(withId(R.id.selectPhotoButton)).perform(click())
-                onView(withId(R.id.selectPhotoSave)).perform(click())
-            }
-        }
-
+        // Click on select photo button
+        onView(withId(R.id.selectPhotoButton)).perform(click())
+        // Click on save button
+        onView(withId(R.id.selectPhotoSave)).perform(click())
     }
-
 
 
 }

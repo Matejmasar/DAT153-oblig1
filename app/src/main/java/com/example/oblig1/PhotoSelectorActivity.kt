@@ -16,7 +16,7 @@ import androidx.core.widget.doOnTextChanged
 /**
  * This class represents activity for adding a new photo and its description
  */
-class PhotoSelectorActivity(private val customRegistry: ActivityResultRegistry? = null): AppCompatActivity() {
+class PhotoSelectorActivity: AppCompatActivity() {
 
     private val photoViewModel: PhotoViewModel by viewModels {
         PhotoViewModelFactory((application as PhotosApplication).repository)
@@ -27,13 +27,16 @@ class PhotoSelectorActivity(private val customRegistry: ActivityResultRegistry? 
     private lateinit var description: String
 
     // modern replacement of starting activity with Intent
-    private val openDocument = registerForActivityResult(ActivityResultContracts.OpenDocument(), customRegistry ?: this.activityResultRegistry) { result: Uri? ->
+    private val openDocument = registerForActivityResult(ActivityResultContracts.OpenDocument()) { result: Uri? ->
         // if any uri came back
         result?.let{
             // set the uri
             uri = it
-            // get permission to access the photo from different activities
-            contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            // if the uri is not from android resources, get permission to access it (for tests to work)
+            if(it.scheme != "android.resource"){
+                // get permission to access the photo from different activities
+                contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
             // draw image preview
             drawImage()
         }

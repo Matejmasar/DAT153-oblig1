@@ -10,7 +10,10 @@ import android.widget.Button
  */
 class MainActivity : AppCompatActivity() {
 
-
+    /**
+     * This method is called when the activity is created
+     * @param savedInstanceState Bundle saved state of the activity
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -19,25 +22,30 @@ class MainActivity : AppCompatActivity() {
         setUpQuiz()
     }
 
-    // sets up listener on Gallery button
-    private fun setUpGallery(){
+    /**
+     * This method sets up listener on Gallery button
+     * When clicked, it opens the GalleryActivity
+     */
+    private fun setUpGallery() {
         val galleryButton = findViewById<Button>(R.id.gallery_button)
 
-        galleryButton.setOnClickListener{
+        galleryButton.setOnClickListener {
             val galleryIntent = Intent(this, GalleryActivity::class.java)
             startActivity(galleryIntent)
 
         }
     }
 
-    // sets up listener on Quiz button
-    private fun setUpQuiz(){
+    /**
+     * This method sets up listener on Quiz button
+     * When clicked, it opens the QuizActivity
+     */
+    private fun setUpQuiz() {
         val quizButton = findViewById<Button>(R.id.quiz_button)
 
-        quizButton.setOnClickListener{
+        quizButton.setOnClickListener {
             val quizIntent = Intent(this, QuizActivity::class.java)
             startActivity(quizIntent)
         }
     }
 }
-

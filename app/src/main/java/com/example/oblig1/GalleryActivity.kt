@@ -18,23 +18,34 @@ import androidx.recyclerview.widget.RecyclerView
  */
 class GalleryActivity : AppCompatActivity() {
 
+    // view model for photos
     private val photoViewModel: PhotoViewModel by viewModels {
         PhotoViewModelFactory((application as PhotosApplication).repository)
     }
+
     // adapter to populate photos into UI
     private lateinit var galleryAdapter: GalleryAdapter
+
     // remembering current sorting value
     private var currentSortSelection: String = "Select sorting"
 
 
+    /**
+     * This method is called when the activity is created
+     * @param savedInstanceState Bundle saved state of the activity
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_gallery)
 
+        // draw photos onto UI
         drawPhotos()
+        // populate spinner with sorting options
         populateSpinner()
+        // set up Floating Action Button to add new photos
         setUpFAB()
 
+        // Observe the LiveData from the ViewModel
         photoViewModel.allPhotos.observe(this) { photos ->
             // Update the cached copy of the photos in the adapter.
             photos?.let {
@@ -52,8 +63,11 @@ class GalleryActivity : AppCompatActivity() {
     }
 
 
-    // draw photos onto UI
-    private fun drawPhotos(){
+    /**
+     * This method draws photos onto the UI
+     * It sets up the RecyclerView and the adapter with delete function
+     */
+    private fun drawPhotos() {
         val gallery: RecyclerView = findViewById(R.id.galleryRecyclerView)
         gallery.layoutManager = GridLayoutManager(this, 2);
 
@@ -65,8 +79,10 @@ class GalleryActivity : AppCompatActivity() {
 
     }
 
-    // populate spinner with sorting options
-    private fun populateSpinner(){
+    /**
+     * This method populates the spinner with sorting options and handles sorting
+     */
+    private fun populateSpinner() {
         val spinner: Spinner = findViewById(R.id.sortSpinner)
         val placeholder = "Select sorting"
         val values = arrayOf(placeholder, "A-Z", "Z-A")
@@ -75,8 +91,11 @@ class GalleryActivity : AppCompatActivity() {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         spinner.adapter = adapter
 
+        // sort when spinner item is selected
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            override fun onItemSelected(
+                parent: AdapterView<*>?, view: View?, position: Int, id: Long
+            ) {
                 currentSortSelection = parent?.getItemAtPosition(position).toString()
                 handleSorting()
             }
@@ -86,11 +105,14 @@ class GalleryActivity : AppCompatActivity() {
         }
     }
 
-    // sort photos based on criteria
-    private fun handleSorting(){
+    /**
+     * This method handles sorting of photos
+     */
+    private fun handleSorting() {
 
+        // observe photos and update sorted list in adapter
         photoViewModel.allPhotos.value?.let { photos ->
-            val sortedPhotos = when(currentSortSelection){
+            val sortedPhotos = when (currentSortSelection) {
                 "A-Z" -> photos.sortedBy { photo -> photo.description }
                 "Z-A" -> photos.sortedByDescending { photo -> photo.description }
                 else -> photos
@@ -100,8 +122,11 @@ class GalleryActivity : AppCompatActivity() {
         }
     }
 
-    // set up Floating Action Button
-    private fun setUpFAB(){
+    /**
+     * This method sets up the Floating Action Button to add new photos
+     * When clicked, it opens the PhotoSelectorActivity
+     */
+    private fun setUpFAB() {
         val fab: View = findViewById(R.id.addPhotoButton)
         fab.setOnClickListener {
             val getPhotoIntent = Intent(this, PhotoSelectorActivity::class.java)

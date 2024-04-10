@@ -1,19 +1,22 @@
 package com.example.oblig1
 
 import android.net.Uri
-import androidx.annotation.NonNull
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 /**
- * This class is made for storing data
- * it stores source for the image and its description
+ * This class represents the PhotoDescription entity and is used to store the photo and its description,
+ * Used for ORM with Room
  */
 @Entity(tableName = "photos")
 data class PhotoDescription(
+    // Primary key with auto increment, unique identifier for each photo
     @PrimaryKey(autoGenerate = true) @ColumnInfo(name = "id") val id: Int = 0,
+    // URI of the photo
     @ColumnInfo(name = "uri") val photo: Uri,
-    @ColumnInfo(name = "description") val description: String){
+    // Description of the photo
+    @ColumnInfo(name = "description") val description: String
+) {
 
 }

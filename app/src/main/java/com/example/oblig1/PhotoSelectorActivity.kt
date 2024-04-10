@@ -16,70 +16,92 @@ import androidx.core.widget.doOnTextChanged
 /**
  * This class represents activity for adding a new photo and its description
  */
-class PhotoSelectorActivity: AppCompatActivity() {
+class PhotoSelectorActivity : AppCompatActivity() {
 
+    // view model for photos
     private val photoViewModel: PhotoViewModel by viewModels {
         PhotoViewModelFactory((application as PhotosApplication).repository)
     }
+
     // uri of the photo
     private var uri: Uri? = null
+
     // description of the photo
     private lateinit var description: String
 
     // modern replacement of starting activity with Intent
-    private val openDocument = registerForActivityResult(ActivityResultContracts.OpenDocument()) { result: Uri? ->
-        // if any uri came back
-        result?.let{
-            // set the uri
-            uri = it
-            // if the uri is not from android resources, get permission to access it (for tests to work)
-            if(it.scheme != "android.resource"){
-                // get permission to access the photo from different activities
-                contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+    private val openDocument =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { result: Uri? ->
+            // if any uri came back
+            result?.let {
+                // set the uri
+                uri = it
+                // if the uri is not from android resources, get permission to access it (for tests to work)
+                if (it.scheme != "android.resource") {
+                    // get permission to access the photo from different activities
+                    contentResolver.takePersistableUriPermission(
+                        it, Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    )
+                }
+                // draw image preview
+                drawImage()
             }
-            // draw image preview
-            drawImage()
         }
-    }
+
+    /**
+     * This method is called when the activity is created
+     * @param savedInstanceState Bundle saved state of the activity
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_photo_selector)
 
+        // set up description input
         setUpDescription()
+        // set up select button
         setUpSelect()
+        // set up save button
         setUpSave()
 
     }
 
 
-    // set up description on change listener
-    private fun setUpDescription(){
+    /**
+     * This method sets up description field and saves the input
+     */
+    private fun setUpDescription() {
         val selectPhotoDescription = findViewById<EditText>(R.id.selectPhotoDescription)
 
-        selectPhotoDescription.doOnTextChanged{ text, _, _, _ ->
+        selectPhotoDescription.doOnTextChanged { text, _, _, _ ->
             description = text.toString()
         }
     }
 
-    // set up select button listener
-    private fun setUpSelect(){
+    /**
+     * This method sets up select button to open the gallery
+     */
+    private fun setUpSelect() {
         val selectPhotoButton = findViewById<Button>(R.id.selectPhotoButton)
 
-        selectPhotoButton.setOnClickListener{
+        selectPhotoButton.setOnClickListener {
             openDocument.launch(arrayOf("image/*"))
         }
     }
 
-    // set up save button
-    private fun setUpSave(){
+    /**
+     * This method sets up save button to save the photo and description to Room database
+     */
+    private fun setUpSave() {
         val saveButton = findViewById<Button>(R.id.selectPhotoSave)
 
-        saveButton.setOnClickListener{
+        saveButton.setOnClickListener {
             // if no image is selected, no description is provided or is empty string show dialog
-            if(uri == null || !this::description.isInitialized || description == ""){
-                showDialog(getString(R.string.incorrect_select_photo_title), getString(R.string.incorrect_select_photo_desc))
-            }
-            else{
+            if (uri == null || !this::description.isInitialized || description == "") {
+                showDialog(
+                    getString(R.string.incorrect_select_photo_title),
+                    getString(R.string.incorrect_select_photo_desc)
+                )
+            } else {
                 val newPhoto = PhotoDescription(photo = uri!!, description = description)
                 photoViewModel.insert(newPhoto)
                 setResult(RESULT_OK, Intent())
@@ -91,14 +113,20 @@ class PhotoSelectorActivity: AppCompatActivity() {
         }
     }
 
-    // draw image onto preview
-    private fun drawImage(){
+    /**
+     * This method draws the image preview
+     */
+    private fun drawImage() {
         val image = findViewById<ImageView>(R.id.selectPhotoPreview)
         image.setImageURI(uri)
     }
 
-    // general show dialog method, takes title and message to show
-    private fun showDialog(title:String, message: String){
+    /**
+     * This method shows a dialog with given title and message
+     * @param title String title of the dialog
+     * @param message String message of the dialog
+     */
+    private fun showDialog(title: String, message: String) {
 
         val alertDialogBuilder = AlertDialog.Builder(this)
         alertDialogBuilder.setTitle(title)

@@ -4,7 +4,12 @@ import android.app.Application
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 
-class PhotosApplication: Application() {
+/**
+ * This class keeps global state of the application
+ */
+class PhotosApplication : Application() {
+
+    // CoroutineScope is used to launch coroutines, SupervisorJob ensures that failing child doesn't affect others
     // No need to cancel this scope as it'll be torn down with the process
     val applicationScope = CoroutineScope(SupervisorJob())
 
